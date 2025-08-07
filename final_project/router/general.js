@@ -37,12 +37,20 @@ public_users.get('/author/:author',function (req, res) {
     for (i = 1; i < 11; i++) {
         console.log(books[i].author);
         if (author === books[i].author) {
-            bookFound = books[i];
-        } else {
             bookFound.push(books[i]);
+        } else {
+            message = "Book not found";
         }
     };
-    return res.send(JSON.stringify(bookFound, null, 4));
+
+    if (bookFound.length === 1) {
+        return res.send(JSON.stringify(bookFound[0], null, 4));
+    } else if (bookFound.length> 1) {
+        return res.send(JSON.stringify(bookFound, null, 4));
+    } else {
+        return res.send(message);
+    }
+    
     //return res.send(JSON.stringify(bookFound, null, 4));
 });
 
