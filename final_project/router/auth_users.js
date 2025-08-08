@@ -55,7 +55,7 @@ regd_users.post("/login", (req,res) => {
             req.session.authorization = {
                 accessToken, username
             };
-            return res.status(200).send("User succesfully logged in");
+            return res.status(200).send(`Logged in as ${username}`);
         } else {
             return res.status(208).json({ message: "Invalid Login. Check your password" });
         }   
@@ -86,13 +86,13 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
         } else {
             // If the review posted is different than the one to post, update the review
             postedReviews[username] = reviewToPost;
-            return res.status(200).send(`Review for ${books[isbn].title} updated`)
+            return res.status(200).send(`Review from ${username} for ${books[isbn].title} updated`)
         }
     } else {
         // If here is no matching username in posted reviews, create a new review with session username
         postedReviews[username] = reviewToPost;
 
-        return res.status(200).send(`Review for ${books[isbn].title} succesfully added`)
+        return res.status(200).send(`Review from ${username} for ${books[isbn].title} succesfully added`)
     }
 });
 
@@ -113,6 +113,8 @@ regd_users.delete("/auth/review/:isbn", (req, res) => {
         return res.status(404).send(`User ${username} has not posted a review`)
     }
 });
+
+
 
 module.exports.authenticated = regd_users;
 module.exports.isValid = isValid;

@@ -48,7 +48,7 @@ public_users.get('/isbn/:isbn',function (req, res) {
 
     let filtered_book = books[isbn];
     
-    return res.send(filtered_book);
+    return res.status(200).send(JSON.stringify(filtered_book, null, 4));
  });
   
 // Get book details based on author
