@@ -7,11 +7,13 @@ let users = [];
 
 const isValid = (username)=>{ //returns boolean
     //write code to check is the username is valid
+
     let validUser = users.filter((user) => {
         return (user.username === username);
     })
+    //console.log("isValid output: ", validUser)
 
-    if (validUser) {
+    if (validUser.length > 0) {
         return true;
     } else {
         return false;
@@ -24,8 +26,9 @@ const authenticatedUser = (username,password)=>{ //returns boolean
     let validusers = users.filter((user) => {
         return (user.username === username && user.password === password);
     });
+
     // Return true if any valid user is found, otherwise false
-    if (validusers) {
+    if (validusers.length > 0) {
         return true;
     } else {
         return false;
@@ -42,27 +45,35 @@ regd_users.post("/login", (req,res) => {
         return res.status(404).json({message: "Error logging in"});
     }
 
-    if (authenticatedUser(username)) {
-        let accessToken = jwt.sign({
-            data: username
-        }, 'access', { expiresIn: 60 * 60});
+    if (isValid(username)) {
+        if (authenticatedUser(username,password)) {
+            let accessToken = jwt.sign({
+                data: username
+            }, 'access', { expiresIn: 60 * 60});
 
-        // Stores access token and username in session
-        req.session.authorization = {
-            accessToken, username
-        };
-        return res.status(200).send("User succesfully logged in");
+            // Stores access token and username in session
+            req.session.authorization = {
+                accessToken, username
+            };
+            return res.status(200).send("User succesfully logged in");
+        } else {
+            return res.status(208).json({ message: "Invalid Login. Check your password" });
+        }   
     } else {
-        return res.status(208).json({ message: "Invalid Login. Check username and password" });
-    }    
-
-
+        return res.status(408).send("Username doesn't exist!");
+    } 
 });
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+    //Write your code here
+    const isbn = req.params.isbn;
+    const review = req.params.review;
+    const username = req.session.authorization['username'];
+
+    
+    let book
+    return res.status(300).json({message: "Yet to be implemented"});
 });
 
 module.exports.authenticated = regd_users;

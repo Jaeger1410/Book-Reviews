@@ -55,12 +55,14 @@ public_users.get('/isbn/:isbn',function (req, res) {
 public_users.get('/author/:author',function (req, res) {
     //Write your code here
     const author = req.params.author;
-
+    
+    // Get keys of object books
     let index = Object.keys(books);
-
+    // Empty array to store found books
     let bookFound = [];
+    // Cycle through books object by index
     index.forEach((id) => {
-        if (author === books[id].author) {
+        if (author === books[id].author) {  // Find book that matches the author in request
             bookFound.push(books[id]);
         } else {
             message = "Book not found";
@@ -68,10 +70,10 @@ public_users.get('/author/:author',function (req, res) {
     })
 
     if (bookFound.length === 1) {
-        return res.send(JSON.stringify(bookFound[0], null, 4));
-    } else if (bookFound.length > 1) {
-        return res.send(JSON.stringify(bookFound, null, 4));
-    } else {
+        return res.send(JSON.stringify(bookFound[0], null, 4)); /* In case there's       */                                                   
+    } else if (bookFound.length > 1) {                          /* only one book found, display as dictionary.*/
+        return res.send(JSON.stringify(bookFound, null, 4));    /* In case there are more than 1 book found, */
+    } else {                                                     /* display list of dictionaries.*/
         return res.send(message);
     }
     
