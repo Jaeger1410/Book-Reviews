@@ -67,9 +67,9 @@ regd_users.post("/login", (req,res) => {
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
     //Write your code here
-    const isbn = req.params.isbn;
-    const review = req.body.review;
-    const username = req.session.authorization['username'];
+    const isbn = req.params.isbn; // Extract isbn from request parameters
+    const review = req.body.review; // Extract review from body
+    const username = req.session.authorization['username']; // Extract username from session
     
     let postedReviews = books[isbn].reviews;
     let reviewToPost = {
@@ -79,27 +79,39 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
 
     // Search for username in existing reviews
     let userFound = reviewIndex.find(user => user === username);
-    if (userFound) {
+    if (userFound) { 
+        // If there is a review posted by username check if the review to post is the same as the posted one
         if (postedReviews[username].review === reviewToPost.review) {
             return res.status(300).send("Review already exists");
         } else {
+            // If the review posted is different than the one to post, update the review
             postedReviews[username] = reviewToPost;
-            console.log(postedReviews);
             return res.status(200).send(`Review for ${books[isbn].title} updated`)
         }
-        
     } else {
+        // If here is no matching username in posted reviews, create a new review with session username
         postedReviews[username] = reviewToPost;
-        console.log(postedReviews);
+
         return res.status(200).send(`Review for ${books[isbn].title} succesfully added`)
     }
-   // } else {
-   //     books[isbn].reviews[username] = {
-    //        "review": review
-    //    };
-    //    console.log(books[isbn].reviews);
-     //   return res.status(200).send(`Review for ${books[isbn].title} succesfully posted`)
-   // } 
+});
+
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    const isbn = req.params.isbn;
+    const username = req.session.authorization['username'];
+    // Get reviews for book with matching ISBN
+    let bookReviews = books[isbn].reviews;
+    // Extract usernames who have uploaded reviews
+    let reviewIndex = Object.keys(bookReviews);
+    // Find user based on session username 
+    let userReviews = reviewIndex.find(user => user === username);
+    // If username has a review in database, delete review
+    if (userReviews) {
+        delete bookReviews[userReviews];
+        return res.status(200).send(`Review from user ${username} for ${books[isbn].title} deleted succesfully.`);
+    } else {
+        return res.status(404).send(`User ${username} has not posted a review`)
+    }
 });
 
 module.exports.authenticated = regd_users;
