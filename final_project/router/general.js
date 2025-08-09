@@ -3,6 +3,7 @@ let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
+const axios = require('axios');
 
 // Check if a user with the given username already exists
 const doesExist = (username) => {
@@ -36,10 +37,35 @@ public_users.post("/register", (req,res) => {
     return res.status(404).json({message: "Unable to register user."});
 });
 
+async function getAvailableBooks(req, res) {
+    let response = await axios.get('https://cortespoblet-5000.theianext-1-labs-prod-misc-tools-us-east-0.proxy.cognitiveclass.ai/')
+        .then(response => {
+            console.log(response.data);
+            //res.status(200).send(JSON.stringify(response.data, null, 4));
+        })
+        .catch(error => {
+           // res.status(404).send("Unable to fetch data: ", error);
+        });
+        return response;
+};
+getAvailableBooks()
+
 // Get the book list available in the shop
-public_users.get('/',function (req, res) {
-    return res.send(JSON.stringify(books, null, 4));
+public_users.get('/', (req, res) => {
+    //let availableBooks = null;
+    getAvailableBooks().then(response => {
+        res.send(JSON.stringify(response.data, null, 4));
+    })
+    .catch(error => {
+        res.status(500).send("Unable to fetch", error)
+    })
+       
+    return res.send(JSON.stringify(books, null, 4)); 
+
 });
+
+
+
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
