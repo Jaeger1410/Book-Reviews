@@ -37,93 +37,111 @@ public_users.post("/register", (req,res) => {
     return res.status(404).json({message: "Unable to register user."});
 });
 
-async function getAvailableBooks() {
-    let response = await axios.get('https://cortespoblet-5000.theianext-1-labs-prod-misc-tools-us-east-0.proxy.cognitiveclass.ai/')
-        .then(response => {
-            console.log(response.data);
-            //res.status(200).send(JSON.stringify(response.data, null, 4));
-        })
-        .catch(error => {
-            console.log("Unable to fetch data: ", error);
-        });
-        return response;
+function getAvailableBooks() {
+    return myPromise = new Promise((resolve, reject) => {
+        if (books) {
+            resolve(books);
+        }
+    });
 };
-getAvailableBooks()
 
 // Get the book list available in the shop
 public_users.get('/', async (req, res) => {
-    let availableBooks = null;
-    let myPromise = new Promise((resolve, reject) => {
-            resolve()
-        });
-    
-    myPromise.then((Books) => {availableBooks = Books});
-    console.log(myPromise);
-    return res.send(JSON.stringify(books, null, 4)); 
-
+    try {
+        const data = await getAvailableBooks();
+        return res.status(200).send(JSON.stringify(data, null, 4));
+    } catch (error) {
+        console.error('Error fetching data: ', error);
+        return res.status(500).send("Unable to fetch available books");
+    }
 });
 
-
+function getBooksByISBN(isbn) {
+    return myPromise = new Promise((resolve, reject) => {
+        if (isbn) {
+            resolve(books[isbn]);
+        }
+    })
+}
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
+public_users.get('/isbn/:isbn',async (req, res) => {
     //Write your code here
     const isbn = req.params.isbn;
-
-    let filtered_book = books[isbn];
-    
-    return res.status(200).send(JSON.stringify(filtered_book, null, 4));
- });
-  
-// Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-    //Write your code here
-    const author = req.params.author;
-    
-    // Get keys of object books
-    let index = Object.keys(books);
-    // Empty array to store found books
-    let bookFound = [];
-    // Cycle through books object by index
-    index.forEach((id) => {
-        if (author === books[id].author) {  // Find book that matches the author in request
-            bookFound.push(books[id]);
-        } else {
-            message = "Book not found";
-        }
-    })
-
-    if (bookFound.length === 1) {
-        return res.send(JSON.stringify(bookFound[0], null, 4)); /* In case there's       */                                                   
-    } else if (bookFound.length > 1) {                          /* only one book found, display as dictionary.*/
-        return res.send(JSON.stringify(bookFound, null, 4));    /* In case there are more than 1 book found, */
-    } else {                                                     /* display list of dictionaries.*/
-        return res.send(message);
+    try {
+        const book = await getBooksByISBN(isbn);
+        return res.status(200).send(JSON.stringify(book, null, 4));
+    } catch (error) {
+        console.error('Unable to fetch data: ', error);
+        return res.status(500).send(`Unable to fetch book with isbn ${isbn}`);
     }
-    
-    //return res.send(JSON.stringify(bookFound, null, 4));
 });
 
-// Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-    
-    const title = req.params.title;
+function getBookByAuthor(author) {
+    return myPromise = new Promise((resolve, reject) => {
+        // Get keys of books object 
+        let index = Object.keys(books);
+        // Empty array to store found books
+        let bookFound = [];
+        // Cycle through books object by index
+        index.forEach((id) => {
+            if (author === books[id].author) {  // Find book that matches the author in request
+                bookFound.push(books[id]);
+            } else {
+                message = "Book not found";
+            }
+        })
 
-    let index = Object.keys(books);
-
-    let bookFound = '';
-    
-    index.forEach((id) => {
-        if (title === books[id].title) {
-            bookFound = books[id];
-        } else {
-            message = "Book not found";
+        if (bookFound.length === 1) {
+            resolve(bookFound[0]);          /* In case there's       */                                                   
+        } else if (bookFound.length > 1) {  /* only one book found, display as dictionary.*/
+            resolve(bookFound);             /* In case there are more than 1 book found, */
+        } else {                            /* display list of dictionaries.*/
+            reject("Book not found");
         }
     })
+}
+// Get book details based on author
+public_users.get('/author/:author',async (req, res) => {
+    //Write your code here
+    const author = req.params.author;
+    try {
+        const book = await getBookByAuthor(author);
+        return res.status(200).send(JSON.stringify(book, null, 4));
+    } catch (error) {
+        console.error('Unable to fetch data: ', error);
+        return res.status(500).send(`Unable to get book from ${author}`);
+    }
+});
 
-    if (bookFound) {
-        return res.send(JSON.stringify(bookFound, null, 4));
-    } else {
-        return res.send(message);
+function getBookByTitle(title) {
+    return myPromise = new Promise((resolve, reject) => {
+        // Get keys of books object
+        let index = Object.keys(books);
+
+        let bookFound = '';
+        
+        index.forEach((id) => {
+            if (title === books[id].title) {
+                bookFound = books[id];
+            }
+        })
+        if (bookFound) {
+            resolve(bookFound);
+        } else {
+            reject("Book not found");
+        }
+    })
+}
+// Get all books based on title
+public_users.get('/title/:title',async (req, res) => {
+    
+    const title = req.params.title;
+    try {
+        const book = await getBookByTitle(title);
+        return res.status(200).send(JSON.stringify(book, null, 4));
+    } catch (error) {
+        console.error('Unable to fetch data: ', error);
+        return res.status(500).send(`Unable to get book: ${title}`)
     }
 });
 
